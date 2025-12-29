@@ -7,19 +7,19 @@ const openFaq = ref<number | null>(null)
 
 const faqs = [
   {
-    question: 'Is Serenity Booth really free?',
+    question: 'Is this online photobooth really free?',
     answer: 'Yes! Serenity Booth is completely free to use. No hidden fees, no subscriptions, no watermarks on your downloads.',
   },
   {
-    question: 'How do I save my photos?',
+    question: 'How do I save my photobooth strips?',
     answer: 'After taking your photos and customizing your strip, click the "Download" button to save it as an image file to your device.',
   },
   {
     question: 'Can I use my own background images?',
-    answer: 'Yes! You can select from our preset colors and patterns, or we support custom background images in the color picker section.',
+    answer: 'Yes! You can select from our preset colors and patterns, and we currently developing custom background images.',
   },
   {
-    question: 'Does it work on mobile?',
+    question: 'Does this online photobooth work on mobile?',
     answer: 'Yes! Serenity Booth is fully responsive and works on smartphones, tablets, and desktop computers.',
   },
 ]
@@ -44,7 +44,7 @@ const toggleFaq = (index: number) => {
     <section class="glass-card p-8 mb-8">
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">What is Serenity Booth?</h2>
       <p class="text-gray-600 leading-relaxed">
-        Serenity Booth is a free, browser-based photo booth application that lets you create 
+        Serenity Booth is the premier free, browser-based photo booth application that lets you create 
         beautiful photo strips just like the ones from classic photo booths. Take photos 
         using your webcam, customize with colors, backgrounds, and stickers, then download 
         your creation instantly — no account required!
