@@ -330,6 +330,16 @@ const downloadStrip = () => {
   stripCanvas.width = canvasWidth
   stripCanvas.height = photoAreaHeight + footerHeight
 
+  // Create rounded corners clipping path
+  if (photoStripRef.value) {
+    const scale = canvasWidth / photoStripRef.value.offsetWidth
+    const radius = 12 * scale // 12px is rounded-xl radius
+
+    ctx.beginPath()
+    ctx.roundRect(0, 0, stripCanvas.width, stripCanvas.height, radius)
+    ctx.clip()
+  }
+
   // Draw background
   const drawBackground = new Promise<void>((resolve) => {
     if (selectedColor.value.startsWith('url')) {
@@ -415,6 +425,32 @@ const downloadStrip = () => {
     })
 
     Promise.all(photoPromises).then(() => {
+      // Draw stickers
+      if (photoStripRef.value) {
+        const scale = canvasWidth / photoStripRef.value.offsetWidth
+        
+        stickers.value.forEach(sticker => {
+          ctx.save()
+          
+          // Translate to sticker position
+          ctx.translate(sticker.x * scale, sticker.y * scale)
+          
+          // Rotate
+          ctx.rotate((sticker.rotation * Math.PI) / 180)
+          
+          // Scale
+          const fontSize = 40 * sticker.scale * scale // 40px base size * sticker scale * canvas scale
+          ctx.font = `${fontSize}px serif`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          
+          // Draw emoji
+          ctx.fillText(sticker.emoji, (20 * sticker.scale * scale), (20 * sticker.scale * scale)) // Offset by half size to center
+          
+          ctx.restore()
+        })
+      }
+
       // Draw watermark
       ctx.font = 'bold 24px Inter, sans-serif'
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
