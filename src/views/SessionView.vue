@@ -334,7 +334,14 @@ const downloadStrip = () => {
   }
 
   const cellWidth = canvasWidth / cols
-  const cellHeight = cellWidth * 0.75 // 4:3 aspect ratio
+  
+  // Calculate cell height based on aspect ratio
+  let aspectRatio = 0.75 // Default 4:3 (horizontal)
+  if (layoutType.value === 'vertical-duo' || layoutType.value === 'dynamic-six' || layoutType.value === 'square-quartet') {
+    aspectRatio = 1.33 // 3:4 (vertical)
+  }
+  
+  const cellHeight = cellWidth * aspectRatio
   const photoAreaHeight = cellHeight * rows
   
   stripCanvas.width = canvasWidth
@@ -389,7 +396,74 @@ const downloadStrip = () => {
       }
       bgImg.src = imgUrl
     } else if (selectedColor.value.startsWith('linear') || selectedColor.value.startsWith('repeating')) {
-      ctx.fillStyle = '#ffffff'
+      // Recreate known gradients
+      if (selectedColor.value.includes('#bfdbfe')) {
+        // Pattern 3: Blue gradient (to right)
+        const grad = ctx.createLinearGradient(0, 0, stripCanvas.width, 0)
+        grad.addColorStop(0, '#bfdbfe')
+        grad.addColorStop(1, '#ddd6fe')
+        ctx.fillStyle = grad
+      } else if (selectedColor.value.includes('#f5d0fe')) {
+        // Pattern 2: Pink gradient (135deg / top-left to bottom-right)
+        const grad = ctx.createLinearGradient(0, 0, stripCanvas.width, stripCanvas.height)
+        grad.addColorStop(0.25, '#f5d0fe')
+        grad.addColorStop(0.50, '#fce7f3')
+        grad.addColorStop(0.75, '#fdf2f8')
+        ctx.fillStyle = grad
+      } else if (selectedColor.value.includes('#fecaca')) {
+        // Pattern 5: Red-Yellow gradient (to bottom right)
+        const grad = ctx.createLinearGradient(0, 0, stripCanvas.width, stripCanvas.height)
+        grad.addColorStop(0, '#fecaca')
+        grad.addColorStop(1, '#fef3c7')
+        ctx.fillStyle = grad
+      } else if (selectedColor.value.includes('repeating')) {
+        // Pattern 4: Stripes
+        // Create a small canvas for the pattern
+        const pCanvas = document.createElement('canvas')
+        pCanvas.width = 20
+        pCanvas.height = 20
+        const pCtx = pCanvas.getContext('2d')
+        if (pCtx) {
+          pCtx.fillStyle = '#e5e7eb'
+          pCtx.fillRect(0, 0, 20, 20)
+          pCtx.fillStyle = '#f3f4f6'
+          pCtx.beginPath()
+          // Draw diagonal stripe
+          pCtx.moveTo(0, 20)
+          pCtx.lineTo(10, 20)
+          pCtx.lineTo(20, 10)
+          pCtx.lineTo(20, 0)
+          pCtx.lineTo(10, 0)
+          pCtx.lineTo(0, 10)
+          pCtx.closePath()
+          pCtx.fill()
+          
+          // Second part for seamless tiling
+          pCtx.beginPath()
+          pCtx.moveTo(10, 20)
+          pCtx.lineTo(20, 20)
+          pCtx.lineTo(20, 20) // redundant
+          pCtx.moveTo(0, 0)
+          pCtx.lineTo(0, 0) // redundant
+          pCtx.closePath() // Simplified for basic stripe look
+          
+          const pattern = ctx.createPattern(pCanvas, 'repeat')
+          if (pattern) ctx.fillStyle = pattern
+          else ctx.fillStyle = '#f3f4f6'
+        }
+      } else if (selectedColor.value.includes('#ddd')) {
+        // Pattern 1: Checkers/Diagonal
+        // Simplify to a grey gradient for now as complex CSS patterns are hard to replicate perfectly
+        const grad = ctx.createLinearGradient(0, 0, stripCanvas.width, stripCanvas.height)
+        grad.addColorStop(0, '#dddddd')
+        grad.addColorStop(0.5, '#f5f5f5')
+        grad.addColorStop(1, '#dddddd')
+        ctx.fillStyle = grad
+      } else {
+        // Fallback
+        ctx.fillStyle = '#ffffff'
+      }
+      
       ctx.fillRect(0, 0, stripCanvas.width, stripCanvas.height)
       resolve()
     } else {
@@ -427,7 +501,22 @@ const downloadStrip = () => {
             srcY = (img.height - srcH) * (photo.offsetY / 100)
           }
 
+          // Draw with rounded corners
+          ctx.save()
+          const scale = photoStripRef.value ? (canvasWidth / photoStripRef.value.offsetWidth) : 1
+          const radius = 6 * scale // 6px for rounded-md
+          
+          ctx.beginPath()
+          if (ctx.roundRect) {
+            ctx.roundRect(x, y, w, h, radius)
+          } else {
+            // Fallback for browsers not supporting roundRect
+            ctx.rect(x, y, w, h)
+          }
+          ctx.clip()
+          
           ctx.drawImage(img, srcX, srcY, srcW, srcH, x, y, w, h)
+          ctx.restore()
           resolve()
         }
         img.src = photo.dataUrl
@@ -489,7 +578,7 @@ onUnmounted(() => {
       <h1 class="text-2xl md:text-3xl font-bold gradient-text">Capture your set</h1>
     </div>
 
-    <div class="grid gap-6" :class="layoutType === 'dynamic-six' || layoutType === 'square-quartet' ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-[200px_1fr]'">
+    <div class="grid gap-6" :class="layoutType === 'dynamic-six' || layoutType === 'square-quartet' ? 'lg:grid-cols-[340px_1fr]' : 'lg:grid-cols-[260px_1fr]'">
       <!-- Photo Strip Preview -->
       <div class="flex flex-col items-center">
         <div
@@ -500,7 +589,7 @@ onUnmounted(() => {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             padding: '8px',
-            width: layoutType === 'classic-four' || layoutType === 'vertical-duo' ? '180px' : '240px',
+            width: layoutType === 'classic-four' || layoutType === 'vertical-duo' ? '240px' : '320px',
           }"
         >
           <!-- Classic Four - Vertical Strip -->
@@ -546,7 +635,7 @@ onUnmounted(() => {
               v-for="i in 2"
               :key="i"
               class="relative bg-gray-50 rounded-md flex items-center justify-center overflow-hidden border border-dashed border-gray-300"
-              style="aspect-ratio: 4/3;"
+              style="aspect-ratio: 3/4;"
             >
               <template v-if="getPhoto(i - 1)">
                 <img
@@ -580,7 +669,7 @@ onUnmounted(() => {
               v-for="i in 6"
               :key="i"
               class="relative bg-gray-50 rounded-md flex items-center justify-center overflow-hidden border border-dashed border-gray-300"
-              style="aspect-ratio: 4/3;"
+              style="aspect-ratio: 3/4;"
             >
               <template v-if="getPhoto(i - 1)">
                 <img
@@ -614,7 +703,7 @@ onUnmounted(() => {
               v-for="i in 4"
               :key="i"
               class="relative bg-gray-50 rounded-md flex items-center justify-center overflow-hidden border border-dashed border-gray-300"
-              style="aspect-ratio: 4/3;"
+              style="aspect-ratio: 3/4;"
             >
               <template v-if="getPhoto(i - 1)">
                 <img
