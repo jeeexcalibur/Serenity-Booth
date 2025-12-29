@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
-import { Sparkles } from 'lucide-vue-next'
 
 const route = useRoute()
 </script>
@@ -11,9 +10,11 @@ const route = useRoute()
       <div class="flex items-center justify-between">
         <!-- Logo -->
         <RouterLink to="/" class="flex items-center gap-2 group">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center glow-purple transition-all group-hover:scale-110">
-            <Sparkles class="w-5 h-5 text-white" />
-          </div>
+          <img 
+            src="/favicon.png" 
+            alt="Logo" 
+            class="w-10 h-10 object-contain transition-all group-hover:scale-110"
+          />
           <span class="text-xl font-bold gradient-text">Serenity Booth</span>
         </RouterLink>
 
