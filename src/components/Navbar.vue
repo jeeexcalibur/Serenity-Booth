@@ -13,7 +13,7 @@ const route = useRoute()
           <img 
             src="/favicon.png" 
             alt="Logo" 
-            class="w-10 h-10 object-contain transition-all group-hover:scale-110"
+            class="w-16 h-16 object-contain transition-all group-hover:scale-110"
           />
           <span class="text-xl font-bold gradient-text">Serenity Booth</span>
         </RouterLink>
