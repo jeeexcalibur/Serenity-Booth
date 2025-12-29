@@ -37,13 +37,21 @@ const containerStyle = computed(() => ({
   height: baseSize + 'px',
 }))
 
+const getCoords = (e: MouseEvent | TouchEvent) => {
+  if ('touches' in e && e.touches.length > 0) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }
+  // Fallback for mouse event or empty touches
+  const mouseE = e as MouseEvent
+  return { x: mouseE.clientX, y: mouseE.clientY }
+}
+
 // Start dragging
 const startDrag = (e: MouseEvent | TouchEvent) => {
   e.preventDefault()
   isDragging.value = true
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   dragStart.value = { x: clientX, y: clientY }
   initialPosition.value = { x: props.sticker.x, y: props.sticker.y }
@@ -57,8 +65,7 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
 const onDrag = (e: MouseEvent | TouchEvent) => {
   if (!isDragging.value) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   const dx = clientX - dragStart.value.x
   const dy = clientY - dragStart.value.y
@@ -88,8 +95,7 @@ const startResize = (e: MouseEvent | TouchEvent) => {
   e.stopPropagation()
   isResizing.value = true
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   dragStart.value = { x: clientX, y: clientY }
   initialScale.value = props.sticker.scale
@@ -107,8 +113,7 @@ const startResize = (e: MouseEvent | TouchEvent) => {
 const onResize = (e: MouseEvent | TouchEvent) => {
   if (!isResizing.value) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   // Calculate distance from center
   const dx = clientX - rotateCenter.value.x
@@ -148,8 +153,7 @@ const startRotate = (e: MouseEvent | TouchEvent) => {
   }
   initialRotation.value = props.sticker.rotation
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   const startAngle = Math.atan2(
     clientY - rotateCenter.value.y,
@@ -167,8 +171,7 @@ const startRotate = (e: MouseEvent | TouchEvent) => {
 const onRotate = (e: MouseEvent | TouchEvent) => {
   if (!isRotating.value) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const { x: clientX, y: clientY } = getCoords(e)
   
   const currentAngle = Math.atan2(
     clientY - rotateCenter.value.y,

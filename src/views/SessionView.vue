@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, computed, watch, nextTick } from 'vue'
+import { ref, onUnmounted, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { Download, Upload, X, Grid3x3, Sparkles, ImageIcon, Camera, Move } from 'lucide-vue-next'
 import Badge from '../components/Badge.vue'
@@ -223,14 +223,26 @@ const adjustStartOffset = ref({ x: 50, y: 50 })
 const startPhotoAdjust = (index: number, e: MouseEvent | TouchEvent) => {
   e.preventDefault()
   e.stopPropagation()
+  
+  if (!photos.value[index]) return
+  
   adjustingPhotoIndex.value = index
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  let clientX: number, clientY: number
+  if ('touches' in e && e.touches.length > 0) {
+    clientX = e.touches[0].clientX
+    clientY = e.touches[0].clientY
+  } else {
+    const mouseE = e as MouseEvent
+    clientX = mouseE.clientX
+    clientY = mouseE.clientY
+  }
   
   adjustStartPos.value = { x: clientX, y: clientY }
   const photo = photos.value[index]
-  adjustStartOffset.value = { x: photo.offsetX, y: photo.offsetY }
+  if (photo) {
+    adjustStartOffset.value = { x: photo.offsetX, y: photo.offsetY }
+  }
   
   document.addEventListener('mousemove', onPhotoAdjust)
   document.addEventListener('mouseup', stopPhotoAdjust)
@@ -241,8 +253,15 @@ const startPhotoAdjust = (index: number, e: MouseEvent | TouchEvent) => {
 const onPhotoAdjust = (e: MouseEvent | TouchEvent) => {
   if (adjustingPhotoIndex.value === null) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  let clientX: number, clientY: number
+  if ('touches' in e && e.touches.length > 0) {
+    clientX = e.touches[0].clientX
+    clientY = e.touches[0].clientY
+  } else {
+    const mouseE = e as MouseEvent
+    clientX = mouseE.clientX
+    clientY = mouseE.clientY
+  }
   
   const dx = clientX - adjustStartPos.value.x
   const dy = clientY - adjustStartPos.value.y
@@ -251,8 +270,11 @@ const onPhotoAdjust = (e: MouseEvent | TouchEvent) => {
   const newOffsetX = Math.max(0, Math.min(100, adjustStartOffset.value.x - (dx * 0.5)))
   const newOffsetY = Math.max(0, Math.min(100, adjustStartOffset.value.y - (dy * 0.5)))
   
-  photos.value[adjustingPhotoIndex.value].offsetX = newOffsetX
-  photos.value[adjustingPhotoIndex.value].offsetY = newOffsetY
+  const photo = photos.value[adjustingPhotoIndex.value]
+  if (photo) {
+    photo.offsetX = newOffsetX
+    photo.offsetY = newOffsetY
+  }
 }
 
 const stopPhotoAdjust = () => {
