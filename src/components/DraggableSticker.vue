@@ -37,11 +37,21 @@ const containerStyle = computed(() => ({
   height: baseSize + 'px',
 }))
 
-const getCoords = (e: MouseEvent | TouchEvent) => {
-  if ('touches' in e && e.touches.length > 0) {
-    return { x: e.touches[0].clientX, y: e.touches[0].clientY }
+// Helper to safely get coordinates
+const getCoords = (e: MouseEvent | TouchEvent): { x: number; y: number } => {
+  if ('touches' in e) {
+    const touch = e.touches[0]
+    if (touch) {
+      return { x: touch.clientX, y: touch.clientY }
+    }
+    // If it's a touch event but no touches (e.g. touchend), use changedTouches
+    const changedTouch = e.changedTouches?.[0]
+    if (changedTouch) {
+      return { x: changedTouch.clientX, y: changedTouch.clientY }
+    }
   }
-  // Fallback for mouse event or empty touches
+  
+  // Fallback for mouse event
   const mouseE = e as MouseEvent
   return { x: mouseE.clientX, y: mouseE.clientY }
 }
@@ -51,9 +61,9 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
   e.preventDefault()
   isDragging.value = true
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
   
-  dragStart.value = { x: clientX, y: clientY }
+  dragStart.value = { x: coords.x, y: coords.y }
   initialPosition.value = { x: props.sticker.x, y: props.sticker.y }
   
   document.addEventListener('mousemove', onDrag)
@@ -65,7 +75,9 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
 const onDrag = (e: MouseEvent | TouchEvent) => {
   if (!isDragging.value) return
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
+  const clientX = coords.x
+  const clientY = coords.y
   
   const dx = clientX - dragStart.value.x
   const dy = clientY - dragStart.value.y
@@ -95,7 +107,9 @@ const startResize = (e: MouseEvent | TouchEvent) => {
   e.stopPropagation()
   isResizing.value = true
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
+  const clientX = coords.x
+  const clientY = coords.y
   
   dragStart.value = { x: clientX, y: clientY }
   initialScale.value = props.sticker.scale
@@ -113,7 +127,9 @@ const startResize = (e: MouseEvent | TouchEvent) => {
 const onResize = (e: MouseEvent | TouchEvent) => {
   if (!isResizing.value) return
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
+  const clientX = coords.x
+  const clientY = coords.y
   
   // Calculate distance from center
   const dx = clientX - rotateCenter.value.x
@@ -153,7 +169,9 @@ const startRotate = (e: MouseEvent | TouchEvent) => {
   }
   initialRotation.value = props.sticker.rotation
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
+  const clientX = coords.x
+  const clientY = coords.y
   
   const startAngle = Math.atan2(
     clientY - rotateCenter.value.y,
@@ -171,7 +189,9 @@ const startRotate = (e: MouseEvent | TouchEvent) => {
 const onRotate = (e: MouseEvent | TouchEvent) => {
   if (!isRotating.value) return
   
-  const { x: clientX, y: clientY } = getCoords(e)
+  const coords = getCoords(e)
+  const clientX = coords.x
+  const clientY = coords.y
   
   const currentAngle = Math.atan2(
     clientY - rotateCenter.value.y,

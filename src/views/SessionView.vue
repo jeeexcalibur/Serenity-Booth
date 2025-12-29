@@ -229,9 +229,14 @@ const startPhotoAdjust = (index: number, e: MouseEvent | TouchEvent) => {
   adjustingPhotoIndex.value = index
   
   let clientX: number, clientY: number
-  if ('touches' in e && e.touches.length > 0) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
+  if ('touches' in e) {
+    const touch = e.touches[0]
+    if (touch) {
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+       return // Safely exit if touch is invalid
+    }
   } else {
     const mouseE = e as MouseEvent
     clientX = mouseE.clientX
@@ -254,9 +259,14 @@ const onPhotoAdjust = (e: MouseEvent | TouchEvent) => {
   if (adjustingPhotoIndex.value === null) return
   
   let clientX: number, clientY: number
-  if ('touches' in e && e.touches.length > 0) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
+  if ('touches' in e) {
+    const touch = e.touches[0]
+    if (touch) {
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+       return
+    }
   } else {
     const mouseE = e as MouseEvent
     clientX = mouseE.clientX
